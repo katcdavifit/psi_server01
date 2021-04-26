@@ -1,6 +1,8 @@
 # imports
 import socket
-from logger import log, Severity
+from time import sleep
+
+from logger import log, Severity, init_log
 
 # global settings
 HOST = '127.0.0.1'
@@ -31,6 +33,8 @@ def stage_done(severity: object = Severity.OK):
 
 
 if __name__ == '__main__':
+    init_log()
+
     try:
         stage_start('server_init')
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,9 +42,13 @@ if __name__ == '__main__':
         server.listen()
         stage_done()
 
+        sleep(1)
+
         stage_start('server_run')
         # listen
         stage_done()
+
+        sleep(1)
 
         # shutdown
         stage_start('server_shutdown')
