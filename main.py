@@ -1,6 +1,9 @@
 # imports
 import socket
+import threading
 from time import sleep
+import signal
+import sys
 
 from logger import log, Severity, init_log
 
@@ -16,6 +19,7 @@ STAGES = {
 
 
 # CONTROL VARS
+SERVER = None
 ACTIVE_STAGE_NAME = ''
 ERROR = False
 SHUTDOWN_IN_PROGRESS = False
@@ -25,30 +29,43 @@ SHUTDOWN_IN_PROGRESS = False
 def stage_start(stage_name):
     global ACTIVE_STAGE_NAME
     ACTIVE_STAGE_NAME = stage_name
-    log('{} Start'.format(STAGES[stage_name]))
+    log('{} Start.'.format(STAGES[stage_name]))
 
 
 def stage_done(severity: object = Severity.OK):
-    log('{} Done'.format(STAGES[ACTIVE_STAGE_NAME]), severity)
+    log('{} Done.'.format(STAGES[ACTIVE_STAGE_NAME]), severity)
 
 
-if __name__ == '__main__':
-    init_log()
+def run():
+    global SERVER
+    global SHUTDOWN_IN_PROGRESS
 
     try:
         stage_start('server_init')
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind((HOST, PORT))
-        server.listen()
+        server.settimeout(10)
+        server.listen(1)
+        SERVER = server
         stage_done()
-
-        sleep(1)
 
         stage_start('server_run')
-        # listen
-        stage_done()
+        while not SHUTDOWN_IN_PROGRESS:
+            try:
+                (sock, address) = server.accept()
 
-        sleep(1)
+            except socket.timeout:
+                SHUTDOWN_IN_PROGRESS = True
+                log('Timeout. Shutdown initiated.')
+            # does not work on Windows machines
+            except KeyboardInterrupt:
+                print('Interrupt')
+                SHUTDOWN_IN_PROGRESS = True
+
+        if SHUTDOWN_IN_PROGRESS:
+            stage_done()
+        else:
+            stage_done(Severity.ERR)
 
         # shutdown
         stage_start('server_shutdown')
@@ -56,3 +73,10 @@ if __name__ == '__main__':
         stage_done()
     except Exception as e:
         log('Critical error occurred - {}. Exiting...'.format(e), Severity.ERR)
+
+
+if __name__ == '__main__':
+    init_log()
+
+    run_thread = threading.Thread(target=run)
+    run_thread.start()

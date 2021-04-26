@@ -23,5 +23,5 @@ def get_time():
 
 
 def log(message, severity: object = Severity.INFO):
-    print('[*][{:.3f}][{}] {}'.format(get_time(), severity.value, message))
+    print('[*][{:03.3f}][{}] {}'.format(get_time(), severity.value, message))
 
