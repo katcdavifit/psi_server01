@@ -2,8 +2,9 @@
 from enum import Enum
 import time
 
+# global settings
 PROGRAM_START_STAMP = None
-ROUND_FACTOR = 4
+PREFIX = 3
 
 
 class Severity(Enum):
@@ -17,11 +18,16 @@ def init_log():
     PROGRAM_START_STAMP = time.time()
 
 
+def format_time(t):
+    st = '{:.3f}'.format(t)
+    parts = st.split('.')
+    return '{}.{}'.format(parts[0].zfill(PREFIX), parts[1])
+
+
 def get_time():
     current = time.time()
-    return current - PROGRAM_START_STAMP
+    return format_time(current - PROGRAM_START_STAMP)
 
 
 def log(message, severity: object = Severity.INFO):
-    print('[*][{:03.3f}][{}] {}'.format(get_time(), severity.value, message))
-
+    print('[*][{}][{}] {}'.format(severity.value, get_time(), message))
