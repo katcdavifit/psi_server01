@@ -1,15 +1,15 @@
 # imports
 import socket
-import threading
 import uuid
+import traceback
 
 from logger import log, Severity, init_log
 from client_handler import client_handler
 
 # global settings
-HOST = '127.0.0.1'
+HOST = '192.168.58.1'
 PORT = 61222
-
+CLIENT_SOCKET_TIMEOUT = 5
 STAGES = {
     'server_init': 'Server Init',
     'server_run': 'Server Run',
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         stage_start('server_init')
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind((HOST, PORT))
-        server.settimeout(10)
+        server.settimeout(30)
         server.listen(1)
         SERVER = server
         stage_done()
@@ -52,6 +52,7 @@ if __name__ == '__main__':
             try:
                 (client_socket, address) = server.accept()
                 thread_id = str(uuid.uuid4())[:4]
+                client_socket.settimeout(CLIENT_SOCKET_TIMEOUT)
                 client_handler(thread_id, client_socket)
             except socket.timeout:
                 SHUTDOWN_IN_PROGRESS = True
@@ -72,3 +73,4 @@ if __name__ == '__main__':
         stage_done()
     except Exception as e:
         log('Critical error occurred - {}. Exiting...'.format(e), Severity.ERR)
+        traceback.print_exc()
