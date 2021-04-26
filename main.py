@@ -1,11 +1,10 @@
 # imports
 import socket
 import threading
-from time import sleep
-import signal
-import sys
+import uuid
 
 from logger import log, Severity, init_log
+from client_handler import client_handler
 
 # global settings
 HOST = '127.0.0.1'
@@ -53,6 +52,8 @@ def run():
         while not SHUTDOWN_IN_PROGRESS:
             try:
                 (sock, address) = server.accept()
+                thread_id = str(uuid.uuid4())[:4]
+                client_handler(thread_id, sock)
 
             except socket.timeout:
                 SHUTDOWN_IN_PROGRESS = True
