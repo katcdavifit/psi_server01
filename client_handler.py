@@ -137,7 +137,7 @@ class Handler:
         if key_id is None or key_id not in KEYS:
             self.err('KeyID message contains bad value.')
             return False
-        self.succ('Client key-id is `{}` - {}'.format(key_id, KEYS[key_id]))
+        self.succ('Client KeyID is `{}` - {}'.format(key_id, KEYS[key_id]))
 
         server_hash, client_hash = Handler.get_hashes(robot_name, KEYS[key_id])
         self.send(str(server_hash))
@@ -152,6 +152,7 @@ class Handler:
         if client_control_hash is None or client_control_hash != client_hash:
             self.err('Client hash message contains incorrect value.')
             self.send_login_failed()
+            return False
         self.send_server_ok()
 
         return True
