@@ -2,6 +2,7 @@
 import socket
 import uuid
 import traceback
+import threading
 
 from logger import log, Severity, init_log
 from client_handler import client_handler
@@ -9,7 +10,7 @@ from client_handler import client_handler
 # global settings
 HOST = '192.168.58.1'
 PORT = 61222
-CLIENT_SOCKET_TIMEOUT = 5
+CLIENT_SOCKET_TIMEOUT = 1
 STAGES = {
     'server_init': 'Server Init',
     'server_run': 'Server Run',
@@ -42,7 +43,7 @@ if __name__ == '__main__':
         stage_start('server_init')
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind((HOST, PORT))
-        server.settimeout(30)
+        server.settimeout(300)
         server.listen(1)
         SERVER = server
         stage_done()
@@ -53,7 +54,7 @@ if __name__ == '__main__':
                 (client_socket, address) = server.accept()
                 thread_id = str(uuid.uuid4())[:4]
                 client_socket.settimeout(CLIENT_SOCKET_TIMEOUT)
-                client_handler(thread_id, client_socket)
+                threading.Thread(target=client_handler, args=(thread_id, client_socket)).start()
             except socket.timeout:
                 SHUTDOWN_IN_PROGRESS = True
                 log('Timeout. Shutdown initiated.')
