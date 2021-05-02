@@ -16,6 +16,7 @@ STAGES = {
     'server_run': 'Server Run',
     'server_shutdown': 'Server Shutdown'
 }
+DEFAULT_IDLE_TIMEOUT = 300
 
 
 # control variables
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         stage_start('server_init')
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind((HOST, PORT))
-        server.settimeout(300)
+        server.settimeout(DEFAULT_IDLE_TIMEOUT)
         server.listen(1)
         SERVER = server
         stage_done()
